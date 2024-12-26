@@ -61,7 +61,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": "ok",
   "id": 1
 }
 ----
@@ -132,7 +132,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
   "method": "contacts.sync",
   "params": {
     "phone": "+3801234567890",
-    "code": [1,2,3,4]
+    "contacts": [...]
   },
   "id": 1
 }'
@@ -143,7 +143,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": "ok",
   "id": 1
 }
 ----
@@ -155,7 +155,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 ----
 {
   "jsonrpc": "2.0",
-  "method": "...",
+  "method": "contacts.remove_synced",
   "params": {},
   "id": 1
 }
@@ -166,7 +166,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": "ok",
   "id": 1
 }
 ----
