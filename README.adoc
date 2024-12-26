@@ -1,0 +1,169 @@
+= Wispo API
+
+== How to start
+
+.Request:
+[source,shell,linenum]
+----
+$ docker compose -f docker-compose.yaml up
+----
+
+== Register Phone
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "phones.register",
+  "params": {
+    "phone": "+3801234567890"
+  },
+  "id": 1
+}'
+----
+
+.Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": {},
+  "id": 1
+}
+----
+
+== Confirm Phone
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "phones.confirm",
+  "params": {
+    "phone": "+3801234567890",
+    "code": [1,2,3,4]
+  },
+  "id": 1
+}'
+----
+
+.Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": {},
+  "id": 1
+}
+----
+
+== Is Known Phone
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "phones.is_known",
+  "params": {
+    "phone": "+3801234567890"
+  },
+  "id": 1
+}'
+----
+
+.Response:
+[source,json,linenums]
+----
+{
+  "jsonrpc": "2.0",
+  "result": true,
+  "id": 1
+}
+----
+
+== Is Confirmed Phone
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "phones.is_confirmed",
+  "params": {
+    "phone": "+3801234567890"
+  },
+  "id": 1
+}'
+----
+
+.Response:
+[source,json,linenums]
+----
+{
+  "jsonrpc": "2.0",
+  "result": true,
+  "id": 1
+}
+----
+
+== Sync Contacts List
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "contacts.sync",
+  "params": {
+    "phone": "+3801234567890",
+    "code": [1,2,3,4]
+  },
+  "id": 1
+}'
+----
+
+.Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": {},
+  "id": 1
+}
+----
+
+== Remove Synced Contacts List
+
+.Request:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "method": "...",
+  "params": {},
+  "id": 1
+}
+----
+
+.Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": {},
+  "id": 1
+}
+----
