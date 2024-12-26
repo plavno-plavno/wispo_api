@@ -18,8 +18,8 @@ export WISPO_CONFIG=$(CURDIR)/config/wispo.config
 
 CT_OPTS = -erl_args -config $(CURDIR)/config/sys.config
 
-LOCAL_DEPS += wx
-LOCAL_DEPS += observer et debugger
+# LOCAL_DEPS += wx
+# LOCAL_DEPS += observer et debugger
 
 DEPS += cowboy
 dep_cowboy = git https://github.com/ninenines/cowboy.git 2.12.0
