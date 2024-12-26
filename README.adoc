@@ -31,7 +31,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 {
   "jsonrpc": "2.0",
   "result": {
-    "phone": "",
+    "phone": "+3801234567890",
     "code": [2,7,0,3]
   },
   "id": 1
