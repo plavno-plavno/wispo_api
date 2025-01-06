@@ -18,7 +18,7 @@ generate(Payload) ->
 -spec generate(map(), proplists:proplist()) -> map().
 generate(Payload, Opts) ->
   Key = proplists:get_value(key, Opts),
-  Ttl = proplists:get_value(ttl, Opts, ?DEFAULT_JWT_TTL),
+  Ttl = proplists:get_value(jwt_access_ttl, Opts, ?DEFAULT_JWT_TTL),
   Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
   Jws = #{<<"alg">> => <<"HS256">>},
   Jwt = #{<<"iss">> => <<"wispo">>,
