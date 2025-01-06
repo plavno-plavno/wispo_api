@@ -24,7 +24,8 @@
     {ok, map()}
     | {error, term()}.
 reg_phone(Phone) ->
-    reg_phone(Phone, []).
+    Config = wispo_api_config:get(wispo_api, auth_code),
+    reg_phone(Phone, Config).
 
 %% wispo_api:reg_phone(<<"+1234567890">>, [{code_ttl, 60}]).
 -spec reg_phone(phone(), map()) ->
@@ -41,7 +42,8 @@ reg_phone(Phone, Opts) ->
     },
     true = ets:insert(?ETS_NAME, Rec),
     {ok, #{
-        code => Code
+        code => Code,
+        code_ttl => CodeTtl
     }}.
 
 %% wispo_api:confirm_phone(<<"+1234567890">>, [6,5,4,6])
