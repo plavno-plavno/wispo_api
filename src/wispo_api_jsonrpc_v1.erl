@@ -9,8 +9,6 @@
 
 -module(wispo_api_jsonrpc_v1).
 
--author("Oleksandr Boiko, <erlydev@gmail.com>").
-
 %% API
 -export([
   handle_call/2
