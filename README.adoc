@@ -19,6 +19,9 @@ NOTE: Change `ip` and `port` values in `config/sys.config` file if required befo
 .Start in Docker Compose:
 [source,shell,linenum]
 ----
+$ git clone git@github.com:plavno-plavno/wispo_api.git
+$ cd wispo_api
+$ checkout devel
 $ docker compose -f docker-compose.yaml up
 ----
 
