@@ -12,6 +12,7 @@
 * [x] JWT generation logic
 * [x] JWT verification logic
 * [ ] JWT refresh logic
+* [ ] Migration from `ETS` to `PostgreSQL`
 * [ ] Common tests
 ** [ ] `test/config_SUITE.erl`
 ** [ ] `test/cache_SUITE.erl`
