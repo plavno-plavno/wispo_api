@@ -1,0 +1,40 @@
+= ROADMAP
+
+.Basic functionality:
+* [x] `wispo_api` application skeleton
+* [x] `Dockerfile` for `wispo_api` application
+* [x] `docker-compose.yaml` for `wispo_api` application
+* [x] Configuration file support (`config/sys.config`)
+* [x] Documentation (`README.adoc`)
+* [x] `HTTP API` handler
+* [x] `JSON-RPC 2.0 API` engine
+* [x] `HTTP REST API` support
+* [x] JWT generation logic
+* [x] JWT verification logic
+* [ ] JWT refresh logic
+* [ ] Common tests
+** [ ] `test/config_SUITE.erl`
+** [ ] `test/cache_SUITE.erl`
+** [ ] `test/jsonrpc_SUITE.erl`
+** [ ] `test/rest_SUITE.erl`
+** [ ] `test/ratelimits_SUITE.erl`
+** [ ] ...
+
+.API functionality:
+* [ ] Phone registration/confirmation using code via SMS
+* [ ] Contacts sync
+* [ ] Contacts unsync
+* [ ] JWT refresh
+* [ ] Force logout
+
+.Extended functionality:
+* [ ] Support of configuration file in `TOML` format
+* [ ] Cache (`Redis`-based)
+* [ ] Rate-limiter for API calls
+* [ ] OpenRPC support
+* [ ] OpenAPI support
+* [ ] Logging
+* [ ] Metrics
+* [ ] Authentication attempts limitation per User
+* [ ] Security check for contacts sync/unsync/read
+* [ ] Interaction between `wispo_api` and `ejabberd` for checking if requested nickname is unused
