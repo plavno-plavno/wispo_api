@@ -39,6 +39,7 @@
 
 .Extended functionality:
 * [ ] Support of configuration file in `TOML` format
+* [ ] Upload/Download files
 * [ ] Cache (`Redis`-based)
 * [ ] Rate-limiter for API calls
 * [ ] OpenRPC support
@@ -48,3 +49,5 @@
 * [ ] Authentication attempts limitation per User
 * [ ] Security check for contacts sync/unsync/read
 * [ ] Interaction between `wispo_api` and `ejabberd` for checking if requested nickname is unused
+* [ ] `WebSub` for subscription and receive notifications about "User %Name has joined to Wispo"
+* [ ] Invite user into Wispo messenger via SMS
