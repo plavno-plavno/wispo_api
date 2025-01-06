@@ -1,6 +1,11 @@
 = Wispo API
 :toc:
 
+== About
+
+Currently, `Wispo API` server provides both `JSON-RPC 2.0` and `HTTP REST` APIs which is available at `/jsonrpc` and `/rest/1` endpoints on `8989` port number.
+Configuration file is `config/sys.config`.
+
 == How to start
 
 .Start for development and debugging:
