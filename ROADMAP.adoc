@@ -6,6 +6,12 @@
 * [x] `docker-compose.yaml` for `wispo_api` application
 * [x] Configuration file support (`config/sys.config`)
 * [x] Documentation (`README.adoc`)
+** [x] `JSON-RPC 2.0 API`
+** [x] `HTTP REST API`
+** [ ] Configuration
+** [ ] Flow diagram for Phone registration and confirmation
+** [ ] Flow diagram for contacts sync/unsync
+** [ ] Flow diagram for JWT refresh
 * [x] `HTTP API` handler
 * [x] `JSON-RPC 2.0 API` engine
 * [x] `HTTP REST API` support
