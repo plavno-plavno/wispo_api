@@ -1,16 +1,79 @@
 = Wispo API
+:toc:
+
+== About
+
+Currently, `Wispo API` server provides both `JSON-RPC 2.0` and `HTTP REST` APIs which is available at `/jsonrpc` and `/rest/1` endpoints on `8989` port number.
+Configuration file is `config/sys.config`.
 
 == How to start
 
-.Request:
+.Start for development and debugging:
+[source,shell,linenum]
+----
+$ cd wispo_api && make run
+----
+
+NOTE: Change `ip` and `port` values in `config/sys.config` file if required before starting.
+
+.Start in Docker Compose:
 [source,shell,linenum]
 ----
 $ docker compose -f docker-compose.yaml up
 ----
 
+NOTE: `ip` value in `config/sys.config` file MUST be set to `{0,0,0,0}` for start under Docker Compose.
+
+
+== Healthcheck for K8s
+
+.JSON-RPC 2.0 Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "health.check",
+  "id": 1
+}'
+----
+
+.JSON-RPC 2.0 Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": "ok",
+  "id": 1
+}
+----
+
+.HTTP REST API Request:
+[source,shell,linenum]
+----
+$ curl -X GET http://127.0.0.1:8989/rest/1/health/check \
+-H 'Accept: application/json'
+----
+
+.HTTP REST API Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 69
+content-type: application/json
+date: Mon, 06 Jan 2025 02:20:12 GMT
+server: Cowboy
+
+{
+  "result": "ok"
+}'
+----
+
+
 == Register Phone
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://localhost:8989/jsonrpc/ \
@@ -25,19 +88,50 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 }'
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenum]
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": {
+    "phone": "+3801234567890",
+    "code": [2,7,0,3]
+  },
   "id": 1
 }
 ----
 
+.HTTP REST API Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/phones/register \
+-H 'Content-Type: application/json' \
+-d '
+{
+  "phone": "+3801234567890",
+  "id": 1
+}'
+----
+
+.HTTP REST API Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 69
+content-type: application/json
+date: Mon, 06 Jan 2025 02:20:12 GMT
+server: Cowboy
+
+{
+  "phone": "+3801234567890",
+  "code": [2,7,0,3],
+  "id": 1
+}'
+----
+
 == Confirm Phone
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://localhost:8989/jsonrpc/ \
@@ -53,19 +147,51 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 }'
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenum]
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": {
+    "access_jwt": "...",
+    "refresh_jwt": "..."
+  },
   "id": 1
 }
 ----
 
+.HTTP REST API Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
+-H 'Content-Type: application/json' \
+-d '
+{
+  "phone": "+3801234567890",
+  "code": [1,2,3,4],
+  "id": 1
+}'
+----
+
+.HTTP REST API Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 69
+content-type: application/json
+date: Mon, 06 Jan 2025 02:20:12 GMT
+server: Cowboy
+
+{
+  "access_jwt": "...",
+  "refresh_jwt": "...",
+  "id": 1
+}'
+----
+
 == Is Known Phone
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://localhost:8989/jsonrpc/ \
@@ -80,7 +206,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 }'
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenums]
 ----
 {
@@ -92,7 +218,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 
 == Is Confirmed Phone
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://localhost:8989/jsonrpc/ \
@@ -107,7 +233,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 }'
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenums]
 ----
 {
@@ -119,7 +245,7 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
 
 == Sync Contacts List
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://localhost:8989/jsonrpc/ \
@@ -129,41 +255,41 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
   "method": "contacts.sync",
   "params": {
     "phone": "+3801234567890",
-    "code": [1,2,3,4]
+    "contacts": [...]
   },
   "id": 1
 }'
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenum]
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": "ok",
   "id": 1
 }
 ----
 
 == Remove Synced Contacts List
 
-.Request:
+.JSON-RPC 2.0 Request:
 [source,json,linenum]
 ----
 {
   "jsonrpc": "2.0",
-  "method": "...",
+  "method": "contacts.remove_synced",
   "params": {},
   "id": 1
 }
 ----
 
-.Response:
+.JSON-RPC 2.0 Response:
 [source,json,linenum]
 ----
 {
   "jsonrpc": "2.0",
-  "result": {},
+  "result": "ok",
   "id": 1
 }
 ----

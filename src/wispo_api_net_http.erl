@@ -16,6 +16,7 @@
   allowed_methods/2,
   allow_missing_post/2,
   content_types_accepted/2,
+  content_types_provided/2,
   is_authorized/2,
   forbidden/2,
   service_available/2
@@ -23,7 +24,8 @@
 
 %% API Callbacks
 -export([
-  from_json/2
+  from_json/2,
+  to_json/2
 ]).
 
 %%% ==================================================================
@@ -43,14 +45,15 @@
 -define(HTTP_API_HOST, '_').
 -define(HTTP_API_PORT, 8989).
 -define(HTTP_API_URLS, [
-  {"/jsonrpc", wispo_api_net_http, #{}}
-  %{"/jsonrpc/ws", rbac_net_ws, #{}}
-  %{"/openrpc/v1.json", rbac_net_http, #{}}
+  {"/jsonrpc", wispo_api_net_http, #{api => jsonrpc}},
+  {"/rest/:vsn/:ns/:op", wispo_api_net_http, #{api => http_rest}},
+  {"/static/[...]", cowboy_static_handler, #{}}
 ]).
 
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
-  start([]).
+  Config = wispo_api_config:get(wispo_api, http_api),
+  start(Config).
 
 -spec start(proplists:proplist()) -> {ok, pid()} | {error, term()}.
 start(Opts) ->
@@ -178,6 +181,23 @@ content_types_accepted(Req, State) ->
 %% -------------------------------------------------------------------
 %% @private
 %% -------------------------------------------------------------------
+-spec content_types_provided(Req, State) -> {Result, Req, State} when
+  Req :: cowboy_req:req(),
+  State :: term(),
+  Result :: [{binary() | ParsedMime, AcceptCallback :: atom()}],
+  ParsedMime :: {Type :: binary(), SubType :: binary(), '*' | Params},
+  Params :: [{Key :: binary(), Value :: binary()}],
+  Req :: cowboy_req:req(),
+  State :: term().
+
+content_types_provided(Req, State) ->
+  {[
+    {<<"application/json">>, to_json}
+  ], Req, State}.
+
+%% -------------------------------------------------------------------
+%% @private
+%% -------------------------------------------------------------------
 -spec from_json(Req, State) -> {Result, Req, State} when
   Req :: cowboy_req:req(),
   State :: term(),
@@ -197,8 +217,28 @@ from_json(Req, State) ->
       {stop, Req, State3}
   end.
 
-%% TODO: Fix -H 'Accept: application/json' (to_json/2 -> from_json/2)
-%% curl -X POST http://localhost:8989/jsonrpc2 -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"id": 123, "method": "foo.bar"}'
+%% -------------------------------------------------------------------
+%% @private
+%% -------------------------------------------------------------------
+-spec to_json(Req, State) -> {Result, Req, State} when
+  Req :: cowboy_req:req(),
+  State :: term(),
+  Result :: cowboy_req:resp_body().
+
+to_json(Req, State) ->
+  State2 = init_state(Req, State),
+  % TODO: Fetch args from URI
+  % TODO: Reply without `jsonrpc` field
+  ReqBody = #{<<"jsonrpc">> => <<"2.0">>, <<"method">> => <<"health.check">>, <<"id">> => 1},
+  case wispo_api_jsonrpc_v1:handle_call(ReqBody, State2) of
+    {reply, Reply, State3} ->
+      Json = jsx:encode(Reply),
+      Headers = #{<<"content-type">> => <<"application/json">>},
+      Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+      {stop, Req2, State3};
+    {noreply, State3} ->
+      {stop, Req, State3}
+  end.
 
 %% -------------------------------------------------------------------
 %% @private
@@ -212,7 +252,6 @@ from_json(Req, State) ->
 init_state(Req, State) ->
   {Ip, _Port} = cowboy_req:peer(Req),
   State2 = #{
-    % NOTE: This field is used for access control (e.g., in sca_api_jsonrpc2_v1:handle_call_safe/2)
     request_time  => erlang:system_time(seconds),
     client_ip     => erlang:list_to_binary(inet:ntoa(Ip)),
     protocol_vsn  => cowboy_req:binding(vsn, Req, 1) % TODO: Hardcoded default protocol version. Use value from wispo.config
@@ -231,4 +270,20 @@ get_req_body(Req) ->
       {ok, ReqBodyRaw};
     false ->
       {error, nobody}
+  end.
+
+%% @private
+%% cowboy_req:method(Req).
+%% cowboy_req:path(Req).
+%% cowboy_req:qs(Req).
+%% cowboy_req:parse_qs(Req).
+%% cowboy_req:bindings(Req).
+-spec http_method_to_op_name(cowboy_req:req()) -> binary() | undefined.
+http_method_to_op_name(Req) ->
+  case cowboy_req:method(Req) of
+    <<"GET">> -> <<"read">>;
+    <<"POST">> -> <<"create">>;
+    <<"PUT">> -> <<"update">>;
+    <<"DELETE">> -> <<"delete">>;
+    _ -> undefined
   end.

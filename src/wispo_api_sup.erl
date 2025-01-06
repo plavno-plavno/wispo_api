@@ -11,6 +11,7 @@
 start_link() ->
 	Ret = supervisor:start_link({local, ?MODULE}, ?MODULE, []),
 	?ETS_NAME = ets:new(?ETS_NAME, ?ETS_OPTS),
+	?LOG_INFO("CONFIG: ~p", [wispo_api_config:get()]),
 	case wispo_api_net_http:start() of
 		{ok, _Pid} ->
 			Ret;

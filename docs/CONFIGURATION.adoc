@@ -1,0 +1,113 @@
+= CONFIGURATION
+:toc:
+
+== Configuration File
+
+Configuration file is `config/sys.config`.
+
+.File syntax:
+[source,erlang,linenum]
+----
+[
+  {AppName, [
+    {SectionName, ...}
+  ]},
+  ...
+]
+----
+
+NOTE: See also: https://www.erlang.org/doc/apps/kernel/config.html
+
+
+== Logging Level
+
+.Config example:
+[source,erlang,linenum]
+----
+  ...
+  {kernel, [
+    {logger_level, debug},
+    ...
+  ],
+  ...
+----
+
+.Allowed values for `logger_level`:
+* `emergency`
+* `alert`
+* `critical`
+* `error`
+* `warning`
+* `notice`
+* `info`
+* `debug`
+
+NOTE: See also: https://www.erlang.org/doc/apps/kernel/logger_chapter.html
+
+NOTE: About Erlang Types specification: https://www.erlang.org/doc/system/typespec.html
+
+
+== HTTP API
+
+.Config example:
+[source,erlang,linenum]
+----
+  ...
+  {wispo_api, [
+    {http_api, [
+      {ip, {127,0,0,1}},
+      {port, 8989},
+      {host, '_'},
+      {urls, [
+        {"/jsonrpc/", wispo_api_net_http, #{api => jsonrpc}},
+        {"/rest/:vsn/:ns/:op", wispo_api_net_http, #{api => http_rest}},
+        {"/static/[...]", cowboy_static_handler, #{}}
+      ]}
+  ]},
+  ...
+----
+
+[%header,format=psv,separator=|]
+|===
+| Parameter | Type                  | Description           | Example
+| `ip`      | `tuple()`             | IP address to listen  | `{127,0,0,1}`
+| `port`    | `non_neg_integer()`   | Port number to listen | `8989`
+|===
+
+== JWT
+
+.Config example:
+[source,erlang,linenum]
+----
+  ...
+  {wispo_api, [
+    ...
+    {jwt, [
+      {iss, <<"Wispo">>},
+      {alg, <<"HS256">>},
+      {key, <<"secret-key">>},
+      {jwt_access_ttl, 120},
+      {jwt_refresh_ttl, 31536000}
+    ]},
+    ...
+  ]},
+  ...
+----
+
+[%header,format=psv,separator=|]
+|===
+| Parameter         | Type              | Description                   | Example
+| `iss`             | `binary()`        | JWT Issuer                    | `Wispo`
+| `alg`             | `binary()`        | JWT signing algorithm         | `HS256`
+| `key`             | `binary()`        | JWT key for signing           | `secret`
+| `jwt_access_ttl`  | `pos_integer()`   | JWT Access TTL in seconds     | `120`
+| `jwt_refresh_ttl` | `pos_integer()`   | JWT Refresh TTL in seconds    | `31536000`
+|===
+
+NOTE: See also for more information about JWT claims: https://datatracker.ietf.org/doc/html/rfc7519
+
+
+== Cache
+
+== Metrics
+

@@ -54,10 +54,7 @@ confirm_phone(Phone, Code) ->
                 is_confirmed = true
             },
             true = ets:insert(?ETS_NAME, Rec),
-            {ok, #{
-                access_jwt => undefined,
-                refresh_jwt => undefined
-            }};
+            {ok, wispo_api_auth_jwt:generate(#{<<"user_id">> => wispo_api_common_utils:uuid7()})};
         _ ->
             {error, mismatch}
     end.
