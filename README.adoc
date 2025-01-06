@@ -9,11 +9,59 @@
 $ cd wispo_api && make run
 ----
 
+NOTE: Change `ip` and `port` values in `config/sys.config` file if required before starting.
+
 .Start in Docker Compose:
 [source,shell,linenum]
 ----
 $ docker compose -f docker-compose.yaml up
 ----
+
+== Healthcheck for K8s
+
+.JSON-RPC 2.0 Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://localhost:8989/jsonrpc/ \
+-H 'Content-Type: application/json' \
+-d '{
+  "jsonrpc": "2.0",
+  "method": "health.check",
+  "id": 1
+}'
+----
+
+.JSON-RPC 2.0 Response:
+[source,json,linenum]
+----
+{
+  "jsonrpc": "2.0",
+  "result": "ok",
+  "id": 1
+}
+----
+
+.HTTP REST API Request:
+[source,shell,linenum]
+----
+$ curl -X GET http://127.0.0.1:8989/rest/1/health/check \
+-H 'Accept: application/json'
+----
+
+.HTTP REST API Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 69
+content-type: application/json
+date: Mon, 06 Jan 2025 02:20:12 GMT
+server: Cowboy
+
+{
+  "result": "ok"
+}'
+----
+
 
 == Register Phone
 
