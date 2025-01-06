@@ -43,9 +43,9 @@
 -define(HTTP_API_HOST, '_').
 -define(HTTP_API_PORT, 8989).
 -define(HTTP_API_URLS, [
-  {"/jsonrpc", wispo_api_net_http, #{}}
-  %{"/jsonrpc/ws", rbac_net_ws, #{}}
-  %{"/openrpc/v1.json", rbac_net_http, #{}}
+  {"/jsonrpc", wispo_api_net_http, #{api => jsonrpc}},
+  {"/rest/:vsn/:ns/:op", wispo_api_net_http, #{api => http_rest}},
+  {"/static/[...]", cowboy_static_handler, #{}}
 ]).
 
 -spec start() -> {ok, pid()} | {error, term()}.
@@ -212,7 +212,6 @@ from_json(Req, State) ->
 init_state(Req, State) ->
   {Ip, _Port} = cowboy_req:peer(Req),
   State2 = #{
-    % NOTE: This field is used for access control (e.g., in sca_api_jsonrpc2_v1:handle_call_safe/2)
     request_time  => erlang:system_time(seconds),
     client_ip     => erlang:list_to_binary(inet:ntoa(Ip)),
     protocol_vsn  => cowboy_req:binding(vsn, Req, 1) % TODO: Hardcoded default protocol version. Use value from wispo.config
@@ -231,4 +230,15 @@ get_req_body(Req) ->
       {ok, ReqBodyRaw};
     false ->
       {error, nobody}
+  end.
+
+%% @private
+-spec http_method_to_op_name(cowboy_req:req()) -> binary() | undefined.
+http_method_to_op_name(Req) ->
+  case cowboy_req:method(Req) of
+    <<"GET">> -> <<"read">>;
+    <<"POST">> -> <<"create">>;
+    <<"PUT">> -> <<"update">>;
+    <<"DELETE">> -> <<"delete">>;
+    _ -> undefined
   end.

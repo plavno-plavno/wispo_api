@@ -153,6 +153,14 @@ handle_call(<<"contacts.sync">>, #{<<"phone">> := _Phone, <<"contacts">> := _Con
   Reply = to_response(not_implemented),
   {reply, Reply, State};
 
+handle_call(<<"contacts.unsync">>, #{<<"phone">> := _Phone}, State) ->
+  Reply = to_response(not_implemented),
+  {reply, Reply, State};
+
+handle_call(<<"contacts.list">>, #{<<"phone">> := _Phone}, State) ->
+  Reply = to_response(not_implemented),
+  {reply, Reply, State};
+
 handle_call(Method, Params, State) ->
   ?LOG_DEBUG("Method: ~p, Params: ~p, State: ~p)", [Method, Params, State]),
   ?LOG_INFO("UNEXPECTED_JSONRPC_METHOD. Method: ~p, Params: ~p, State: ~p)", [Method, Params, State]),
