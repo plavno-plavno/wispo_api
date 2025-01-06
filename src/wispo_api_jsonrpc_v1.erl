@@ -13,7 +13,6 @@
 
 %% API
 -export([
-  handle_call_safe/2,
   handle_call/2
 ]).
 
@@ -32,31 +31,6 @@
 %%% ==================================================================
 %%% API functions
 %%% ==================================================================
-
-%% -------------------------------------------------------------------
-%% @doc
-%% ...
-%% @end
-%% -------------------------------------------------------------------
--spec handle_call_safe(Request, State1) -> {reply, Reply, State2} | {noreply, State2} when
-  Request :: binary() | map() | [map(), ...],
-  State1 :: map(),
-  State2 :: map(),
-  Reply :: map().
-
-handle_call_safe(Request, State) ->
-  case maps:get(client_ip, State, undefined) of
-    undefined ->
-      {reply, to_response(access_denied), State};
-    Ip ->
-      L = rbac_config:get(http_api, api_access_whitelist), % allow, disallow , deny | TODO: Not implemented
-      case lists:member(Ip, L) of
-        true ->
-          handle_call(Request, State);
-        false ->
-          {reply, to_response(access_denied), State}
-      end
-  end.
 
 %% -------------------------------------------------------------------
 %% @doc
@@ -159,6 +133,10 @@ handle_call(<<"contacts.unsync">>, #{<<"phone">> := _Phone}, State) ->
 
 handle_call(<<"contacts.list">>, #{<<"phone">> := _Phone}, State) ->
   Reply = to_response(not_implemented),
+  {reply, Reply, State};
+
+handle_call(<<"health.check">>, _Params, State) ->
+  Reply = to_response(ok),
   {reply, Reply, State};
 
 handle_call(Method, Params, State) ->
