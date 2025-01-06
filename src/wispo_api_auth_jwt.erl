@@ -11,7 +11,7 @@
 
 -spec generate(map()) -> map().
 generate(Payload) ->
-  Config = wispo_api_config:get(wispo_api, jwt),
+  Config = wispo_api_config:get(wispo_api, auth_jwt),
   generate(Payload, Config).
 
 -spec generate(map(), proplists:proplist()) -> map().
