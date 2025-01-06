@@ -12,6 +12,7 @@ COPY . wispo_api
 WORKDIR wispo_api
 RUN apk add --no-cache g++ && \
     apk add --no-cache make && \
+    apk add --no-cache git && \
     make && make rel
 
 # Build stage 1
