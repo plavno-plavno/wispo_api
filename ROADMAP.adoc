@@ -31,7 +31,7 @@
 ** [ ] ...
 
 .API functionality:
-* [ ] Phone registration/confirmation using code via SMS
+* [x] Phone registration/confirmation using code via SMS. Access JWT release
 * [ ] Contacts sync
 * [ ] Contacts unsync
 * [ ] JWT refresh
