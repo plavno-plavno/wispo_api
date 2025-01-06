@@ -19,7 +19,7 @@
 * [x] JWT generation logic
 * [x] JWT verification logic
 * [ ] JWT refresh logic
-* [ ] Migration from `ETS` to `PostgreSQL`
+* [ ] Migration from `ETS` to `PostgreSQL` (`priv/db/pg.sql`)
 ** [ ] Add support of `PostgreSQL` into `docker-compose.yaml`
 ** [ ] Development of tables schema
 * [ ] Common tests
