@@ -39,6 +39,7 @@
 
 .Extended functionality:
 * [ ] Support of configuration file in `TOML` format
+* [ ] TTL for phone confirmation code
 * [ ] Upload/Download files
 * [ ] Cache (`Redis`-based)
 * [ ] Rate-limiter for API calls
