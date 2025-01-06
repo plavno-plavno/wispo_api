@@ -27,7 +27,4 @@ RUN apk add --no-cache openssl && \
 # Install the released application
 COPY --from=0 /buildroot/wispo_api /opt/wispo_api
 
-# Expose relevant ports
-EXPOSE 8989
-
 CMD ["/opt/wispo_api/_rel/wispo_api_release/bin/wispo_api_release", "foreground"]
