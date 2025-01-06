@@ -50,7 +50,8 @@
 
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
-  start([]).
+  Config = wispo_api_config:get(wispo_api, http_api),
+  start(Config).
 
 -spec start(proplists:proplist()) -> {ok, pid()} | {error, term()}.
 start(Opts) ->
