@@ -16,6 +16,7 @@
   allowed_methods/2,
   allow_missing_post/2,
   content_types_accepted/2,
+  content_types_provided/2,
   is_authorized/2,
   forbidden/2,
   service_available/2
@@ -23,7 +24,8 @@
 
 %% API Callbacks
 -export([
-  from_json/2
+  from_json/2,
+  to_json/2
 ]).
 
 %%% ==================================================================
@@ -179,6 +181,23 @@ content_types_accepted(Req, State) ->
 %% -------------------------------------------------------------------
 %% @private
 %% -------------------------------------------------------------------
+-spec content_types_provided(Req, State) -> {Result, Req, State} when
+  Req :: cowboy_req:req(),
+  State :: term(),
+  Result :: [{binary() | ParsedMime, AcceptCallback :: atom()}],
+  ParsedMime :: {Type :: binary(), SubType :: binary(), '*' | Params},
+  Params :: [{Key :: binary(), Value :: binary()}],
+  Req :: cowboy_req:req(),
+  State :: term().
+
+content_types_provided(Req, State) ->
+  {[
+    {<<"application/json">>, to_json}
+  ], Req, State}.
+
+%% -------------------------------------------------------------------
+%% @private
+%% -------------------------------------------------------------------
 -spec from_json(Req, State) -> {Result, Req, State} when
   Req :: cowboy_req:req(),
   State :: term(),
@@ -198,8 +217,28 @@ from_json(Req, State) ->
       {stop, Req, State3}
   end.
 
-%% TODO: Fix -H 'Accept: application/json' (to_json/2 -> from_json/2)
-%% curl -X POST http://localhost:8989/jsonrpc2 -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"id": 123, "method": "foo.bar"}'
+%% -------------------------------------------------------------------
+%% @private
+%% -------------------------------------------------------------------
+-spec to_json(Req, State) -> {Result, Req, State} when
+  Req :: cowboy_req:req(),
+  State :: term(),
+  Result :: cowboy_req:resp_body().
+
+to_json(Req, State) ->
+  State2 = init_state(Req, State),
+  % TODO: Fetch args from URI
+  % TODO: Reply without `jsonrpc` field
+  ReqBody = #{<<"jsonrpc">> => <<"2.0">>, <<"method">> => <<"health.check">>, <<"id">> => 1},
+  case wispo_api_jsonrpc_v1:handle_call(ReqBody, State2) of
+    {reply, Reply, State3} ->
+      Json = jsx:encode(Reply),
+      Headers = #{<<"content-type">> => <<"application/json">>},
+      Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+      {stop, Req2, State3};
+    {noreply, State3} ->
+      {stop, Req, State3}
+  end.
 
 %% -------------------------------------------------------------------
 %% @private
@@ -234,6 +273,11 @@ get_req_body(Req) ->
   end.
 
 %% @private
+%% cowboy_req:method(Req).
+%% cowboy_req:path(Req).
+%% cowboy_req:qs(Req).
+%% cowboy_req:parse_qs(Req).
+%% cowboy_req:bindings(Req).
 -spec http_method_to_op_name(cowboy_req:req()) -> binary() | undefined.
 http_method_to_op_name(Req) ->
   case cowboy_req:method(Req) of

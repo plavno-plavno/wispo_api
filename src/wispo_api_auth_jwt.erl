@@ -14,17 +14,26 @@ generate(Payload) ->
   Config = wispo_api_config:get(wispo_api, jwt),
   generate(Payload, Config).
 
-%% wispo_api_auth_jwt:generate(#{}, []).
 -spec generate(map(), proplists:proplist()) -> map().
 generate(Payload, Opts) ->
+  Alg = proplists:get_value(alg, Opts),
   Key = proplists:get_value(key, Opts),
+  Iss = proplists:get_value(iss, Opts),
   Ttl = proplists:get_value(jwt_access_ttl, Opts, ?DEFAULT_JWT_TTL),
+  Exp = erlang:system_time(seconds) + Ttl,
   Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
-  Jws = #{<<"alg">> => <<"HS256">>},
-  Jwt = #{<<"iss">> => <<"wispo">>,
-          <<"exp">> => erlang:system_time(seconds) + Ttl},
+  Jws = #{<<"alg">> => Alg},
+  Jwt = #{
+    <<"iss">> => Iss,
+    <<"exp">> => Exp
+  },
   Signed = jose_jwt:sign(Jwk, Jws, maps:merge(Jwt, Payload)),
-  jose_jws:compact(Signed).
+  {_, AccessJwt} = jose_jws:compact(Signed),
+  #{
+    access_jwt => AccessJwt,
+    refresh_jwt => null,
+    expires_in => Exp
+  }.
 
 -spec validate(binary()) -> ok.
 validate(_) ->
