@@ -17,6 +17,9 @@ NOTE: Change `ip` and `port` values in `config/sys.config` file if required befo
 $ docker compose -f docker-compose.yaml up
 ----
 
+NOTE: `ip` value in `config/sys.config` file MUST be set to `{0,0,0,0}` for start under Docker Compose.
+
+
 == Healthcheck for K8s
 
 .JSON-RPC 2.0 Request:
