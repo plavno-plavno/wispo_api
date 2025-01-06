@@ -8,10 +8,11 @@
 * [x] Documentation (`README.adoc`)
 ** [x] `JSON-RPC 2.0 API`
 ** [x] `HTTP REST API`
-** [ ] Configuration
-** [ ] Flow diagram for Phone registration and confirmation
-** [ ] Flow diagram for contacts sync/unsync
-** [ ] Flow diagram for JWT refresh
+** [x] Configuration
+** [ ] Flow diagram for Phone registration and confirmation (`docs/client_phone_reg_confirm.dia`)
+** [ ] Flow diagram for contacts sync/unsync (`docs/client_contacts_sync_unsync.dia`)
+** [ ] Flow diagram for JWT refresh (`docs/client_jwt_refresh.dia`)
+** [ ] Flow diagram for force logout (`docs/client_force_logout.dia`)
 * [x] `HTTP API` handler
 * [x] `JSON-RPC 2.0 API` engine
 * [x] `HTTP REST API` support
