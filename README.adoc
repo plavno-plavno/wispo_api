@@ -296,3 +296,36 @@ $ curl -X POST http://localhost:8989/jsonrpc/ \
   "id": 1
 }
 ----
+
+
+== Files Upload/Download
+
+WARNING: Deprecated API. For development only.
+
+.Upload file:
+[source,shell,linenum]
+----
+$ curl -i -X POST http://localhost:8989/files \
+-H "Content-Type: multipart/form-data" \
+-F "data=@erlang-logo.png"
+
+HTTP/1.1 204 No Content
+----
+
+.Download file:
+[source,shell,linenum]
+----
+$ curl -i -X GET http://localhost:8989/images/erlang-logo.png
+HTTP/1.1 200 OK
+accept-ranges: bytes
+content-length: 5737
+content-type: image/png
+date: Wed, 08 Jan 2025 12:03:35 GMT
+etag: "1699637517"
+last-modified: Wed, 08 Jan 2025 12:02:44 GMT
+server: Cowboy
+
+Warning: Binary output can mess up your terminal. Use "--output -" to tell
+Warning: curl to output it to your terminal anyway, or consider "--output
+Warning: <FILE>" to save to a file.
+----
