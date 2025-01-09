@@ -4,10 +4,8 @@
 -export([execute/2]).
 
 execute(Req, Env=#{handler := cowboy_static}) ->
-  erlang:display_string("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA~n"),
   redirect_directory(Req, Env);
 execute(Req, Env) ->
-  erlang:display_string("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB~n"),
   {ok, Req, Env}.
 
 redirect_directory(Req, Env=#{handler_opts := {_, _, _, Extra}}) ->
@@ -23,7 +21,6 @@ redirect_directory(Req, Env=#{handler_opts := {_, _, _, Extra}}) ->
   end.
 
 handle_directory(Req, Env, Prefix, Path, DirHandler) ->
-  erlang:display_string("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC~n"),
   {ok, Req, Env#{handler => DirHandler, handler_opts => {Prefix, Path}}}.
 
 valid_path([]) -> true;

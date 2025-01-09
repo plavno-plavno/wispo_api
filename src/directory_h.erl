@@ -17,7 +17,6 @@
 -export([list_html/2]).
 
 init(Req, Paths) ->
-  erlang:display_string("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"),
   {cowboy_rest, Req, Paths}.
 
 allowed_methods(Req, State) ->
@@ -65,7 +64,6 @@ charsets_provided(Req, State) ->
   {[<<"utf-8">>], Req, State}.
 
 list_json(Req, {Path, Fs}) ->
-  erlang:display_string("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"),
   Files = [unicode:characters_to_binary(F) || F <- Fs],
   {jsx:encode(Files), Req, Path}.
 
