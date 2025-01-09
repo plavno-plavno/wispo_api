@@ -3,7 +3,7 @@
 
 == About
 
-Currently, `Wispo API` server provides both `JSON-RPC 2.0` and `HTTP REST` APIs which is available at `/jsonrpc` and `/rest/1` endpoints on `8989` port number.
+`Wispo API` server provides `HTTP REST` APIs which is available at `/rest/1` endpoints on `8989` port number.
 Configuration file is `config/sys.config`.
 
 == How to start
@@ -19,6 +19,9 @@ NOTE: Change `ip` and `port` values in `config/sys.config` file if required befo
 .Start in Docker Compose:
 [source,shell,linenum]
 ----
+$ git clone git@github.com:plavno-plavno/wispo_api.git
+$ cd wispo_api
+$ checkout devel
 $ docker compose -f docker-compose.yaml up
 ----
 
@@ -27,36 +30,14 @@ NOTE: `ip` value in `config/sys.config` file MUST be set to `{0,0,0,0}` for star
 
 == Healthcheck for K8s
 
-.JSON-RPC 2.0 Request:
-[source,shell,linenum]
-----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
--H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "health.check",
-  "id": 1
-}'
-----
-
-.JSON-RPC 2.0 Response:
-[source,json,linenum]
-----
-{
-  "jsonrpc": "2.0",
-  "result": "ok",
-  "id": 1
-}
-----
-
-.HTTP REST API Request:
+.Request:
 [source,shell,linenum]
 ----
 $ curl -X GET http://127.0.0.1:8989/rest/1/health/check \
 -H 'Accept: application/json'
 ----
 
-.HTTP REST API Response:
+.Response:
 [source,shell,linenum]
 ----
 HTTP/1.1 200 OK
@@ -66,54 +47,25 @@ date: Mon, 06 Jan 2025 02:20:12 GMT
 server: Cowboy
 
 {
-  "result": "ok"
+  "status": "ok"
 }'
 ----
 
 
 == Register Phone
 
-.JSON-RPC 2.0 Request:
-[source,shell,linenum]
-----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
--H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "phones.register",
-  "params": {
-    "phone": "+3801234567890"
-  },
-  "id": 1
-}'
-----
-
-.JSON-RPC 2.0 Response:
-[source,json,linenum]
-----
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "phone": "+3801234567890",
-    "code": [2,7,0,3]
-  },
-  "id": 1
-}
-----
-
-.HTTP REST API Request:
+.Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://127.0.0.1:8989/rest/1/phones/register \
 -H 'Content-Type: application/json' \
 -d '
 {
-  "phone": "+3801234567890",
-  "id": 1
+  "phone": "+1234567890"
 }'
 ----
 
-.HTTP REST API Response:
+.Response:
 [source,shell,linenum]
 ----
 HTTP/1.1 200 OK
@@ -123,57 +75,29 @@ date: Mon, 06 Jan 2025 02:20:12 GMT
 server: Cowboy
 
 {
-  "phone": "+3801234567890",
-  "code": [2,7,0,3],
-  "id": 1
+  "status": "ok",
+  "data": {
+    "phone": "+1234567890",
+    "code": [2,7,0,3]
+  }
 }'
 ----
 
 == Confirm Phone
 
-.JSON-RPC 2.0 Request:
-[source,shell,linenum]
-----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
--H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "phones.confirm",
-  "params": {
-    "phone": "+3801234567890",
-    "code": [1,2,3,4]
-  },
-  "id": 1
-}'
-----
-
-.JSON-RPC 2.0 Response:
-[source,json,linenum]
-----
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "access_jwt": "...",
-    "refresh_jwt": "..."
-  },
-  "id": 1
-}
-----
-
-.HTTP REST API Request:
+.Request:
 [source,shell,linenum]
 ----
 $ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
 -H 'Content-Type: application/json' \
 -d '
 {
-  "phone": "+3801234567890",
-  "code": [1,2,3,4],
-  "id": 1
+  "phone": "+1234567890",
+  "code": [1,2,3,4]
 }'
 ----
 
-.HTTP REST API Response:
+.Response:
 [source,shell,linenum]
 ----
 HTTP/1.1 200 OK
@@ -183,113 +107,81 @@ date: Mon, 06 Jan 2025 02:20:12 GMT
 server: Cowboy
 
 {
-  "access_jwt": "...",
-  "refresh_jwt": "...",
-  "id": 1
+  "status": "ok",
+  "data": {
+    "access_jwt": "...",
+    "access_jwt_expires_in": 1234567890,
+    "refresh_jwt": "...",
+    "refresh_jwt_expires_in": 1234567890,
+    "user_id": "..."
+  }
 }'
-----
-
-== Is Known Phone
-
-.JSON-RPC 2.0 Request:
-[source,shell,linenum]
-----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
--H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "phones.is_known",
-  "params": {
-    "phone": "+3801234567890"
-  },
-  "id": 1
-}'
-----
-
-.JSON-RPC 2.0 Response:
-[source,json,linenums]
-----
-{
-  "jsonrpc": "2.0",
-  "result": true,
-  "id": 1
-}
-----
-
-== Is Confirmed Phone
-
-.JSON-RPC 2.0 Request:
-[source,shell,linenum]
-----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
--H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "phones.is_confirmed",
-  "params": {
-    "phone": "+3801234567890"
-  },
-  "id": 1
-}'
-----
-
-.JSON-RPC 2.0 Response:
-[source,json,linenums]
-----
-{
-  "jsonrpc": "2.0",
-  "result": true,
-  "id": 1
-}
 ----
 
 == Sync Contacts List
 
-.JSON-RPC 2.0 Request:
+.Request:
 [source,shell,linenum]
 ----
-$ curl -X POST http://localhost:8989/jsonrpc/ \
+$ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 -H 'Content-Type: application/json' \
--d '{
-  "jsonrpc": "2.0",
-  "method": "contacts.sync",
-  "params": {
-    "phone": "+3801234567890",
-    "contacts": [...]
-  },
-  "id": 1
+-d '
+{
+  "phone": "+1234567890",
+  "contacts": ["+111222333", "+777888999", "+999333111"]
 }'
 ----
 
-.JSON-RPC 2.0 Response:
-[source,json,linenum]
+.Response:
+[source,shell,linenum]
 ----
+HTTP/1.1 200 OK
+content-length: 69
+content-type: application/json
+date: Mon, 06 Jan 2025 02:20:12 GMT
+server: Cowboy
+
 {
-  "jsonrpc": "2.0",
-  "result": "ok",
-  "id": 1
-}
+  "status": "ok",
+  "data": {
+    "access_jwt": "...",
+    "refresh_jwt": "...",
+  }
+}'
 ----
 
 == Remove Synced Contacts List
 
-.JSON-RPC 2.0 Request:
-[source,json,linenum]
+== Files Upload/Download
+
+WARNING: Deprecated API. For development only.
+
+.Upload file:
+[source,shell,linenum]
 ----
-{
-  "jsonrpc": "2.0",
-  "method": "contacts.remove_synced",
-  "params": {},
-  "id": 1
-}
+$ curl -i -X POST http://localhost:8989/files \
+-H "Content-Type: multipart/form-data" \
+-F "data=@erlang-logo.png"
+
+HTTP/1.1 204 No Content
 ----
 
-.JSON-RPC 2.0 Response:
-[source,json,linenum]
+.Download file:
+[source,shell,linenum]
 ----
-{
-  "jsonrpc": "2.0",
-  "result": "ok",
-  "id": 1
-}
+$ curl -i -X GET http://localhost:8989/images/erlang-logo.png
+HTTP/1.1 200 OK
+accept-ranges: bytes
+content-length: 5737
+content-type: image/png
+date: Wed, 08 Jan 2025 12:03:35 GMT
+etag: "1699637517"
+last-modified: Wed, 08 Jan 2025 12:02:44 GMT
+server: Cowboy
+
+Warning: Binary output can mess up your terminal. Use "--output -" to tell
+Warning: curl to output it to your terminal anyway, or consider "--output
+Warning: <FILE>" to save to a file.
 ----
+
+NOTE: We can retrieve previously uploaded file using their file name.

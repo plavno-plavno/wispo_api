@@ -17,6 +17,11 @@
   is_valid_phone/1
 ]).
 
+-export([
+  reverse_bin/1,
+  cut_n_numbers/2
+]).
+
 -define(DEFAULT_CODE_LENGTH, 4).
 
 -type uuid_string() :: <<_:256>> | <<_:288>>.
@@ -70,3 +75,21 @@ parse_ip(_) ->
 -spec is_valid_phone(binary()) -> boolean().
 is_valid_phone(_Phone) ->
   {error, not_implemented}.
+
+-spec reverse_bin(binary()) -> binary().
+reverse_bin(Binary) ->
+  Size = erlang:size(Binary) * 8,
+  <<X:Size/integer-little>> = Binary,
+  <<X:Size/integer-big>>.
+
+%% Phone = wispo_api_common_utils:reverse_bin(<<"+1234567890">>).
+%% Num = wispo_api_common_utils:cut_n_numbers(4, Phone).
+-spec cut_n_numbers(pos_integer(), binary()) -> binary().
+cut_n_numbers(N, Subject) ->
+  case re:run(Subject, <<"[0-9]">>, [global, report_errors, {capture, all, binary}]) of
+    {match, L} ->
+      ok;
+    nomatch ->
+      nomatch
+  end.
+

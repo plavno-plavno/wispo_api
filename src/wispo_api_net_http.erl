@@ -206,16 +206,13 @@ content_types_provided(Req, State) ->
 % cowboy_req:set_resp_cookie(<<"t">>, Jwt, Req1, #{path => <<"/">>});
 from_json(Req, State) ->
   State2 = init_state(Req, State),
-  {ok, ReqBody} = get_req_body(Req),
-  case wispo_api_jsonrpc_v1:handle_call(ReqBody, State2) of
-    {reply, Reply, State3} ->
-      Json = jsx:encode(Reply),
-      Headers = #{<<"content-type">> => <<"application/json">>},
-      Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
-      {stop, Req2, State3};
-    {noreply, State3} ->
-      {stop, Req, State3}
-  end.
+  <<"/rest/1", Path/binary>> = cowboy_req:path(Req),
+  ReqBody = get_req_body(Req, State2),
+  RespBody = wispo_api:handle_call(Path, ReqBody, State2),
+  Json = jsx:encode(RespBody),
+  Headers = #{<<"content-type">> => <<"application/json">>},
+  Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+  {stop, Req2, State2}.
 
 %% -------------------------------------------------------------------
 %% @private
@@ -227,18 +224,13 @@ from_json(Req, State) ->
 
 to_json(Req, State) ->
   State2 = init_state(Req, State),
-  % TODO: Fetch args from URI
-  % TODO: Reply without `jsonrpc` field
-  ReqBody = #{<<"jsonrpc">> => <<"2.0">>, <<"method">> => <<"health.check">>, <<"id">> => 1},
-  case wispo_api_jsonrpc_v1:handle_call(ReqBody, State2) of
-    {reply, Reply, State3} ->
-      Json = jsx:encode(Reply),
-      Headers = #{<<"content-type">> => <<"application/json">>},
-      Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
-      {stop, Req2, State3};
-    {noreply, State3} ->
-      {stop, Req, State3}
-  end.
+  <<"/rest/1", Path/binary>> = cowboy_req:path(Req),
+  ReqBody = null,
+  RespBody = wispo_api:handle_call(Path, ReqBody, State2),
+  Json = jsx:encode(RespBody),
+  Headers = #{<<"content-type">> => <<"application/json">>},
+  Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+  {stop, Req2, State2}.
 
 %% -------------------------------------------------------------------
 %% @private
@@ -249,35 +241,57 @@ to_json(Req, State) ->
   ApiCall :: maps:map(),
   Ctx :: maps:map().
 
+init_state(Req, #{api := http_rest} = State) ->
+  init_state_rest(Req, State);
 init_state(Req, State) ->
   {Ip, _Port} = cowboy_req:peer(Req),
   State2 = #{
     request_time  => erlang:system_time(seconds),
     client_ip     => erlang:list_to_binary(inet:ntoa(Ip)),
-    protocol_vsn  => cowboy_req:binding(vsn, Req, 1) % TODO: Hardcoded default protocol version. Use value from wispo.config
+    protocol_vsn  => cowboy_req:binding(vsn, Req, 1)
+  },
+  maps:merge(State, State2).
+
+init_state_rest(Req, State) ->
+  {Ip, _Port} = cowboy_req:peer(Req),
+  State2 = #{
+    request_time    => erlang:system_time(seconds),
+    client_ip       => erlang:list_to_binary(inet:ntoa(Ip)),
+    protocol_vsn    => cowboy_req:binding(vsn, Req, 1),
+    op_name         => http_method_to_op_name(Req),
+    op_args         => cowboy_req:parse_qs(Req),
+    jsonrpc_method  => uri_to_method_name(Req)
   },
   maps:merge(State, State2).
 
 %% -------------------------------------------------------------------
 %% @private
 %% -------------------------------------------------------------------
--spec get_req_body(cowboy_req:req()) -> {ok, binary()} | {error, nobody}.
-
+-spec get_req_body(cowboy_req:req()) ->
+  {ok, binary()}
+  | {error, nobody}.
 get_req_body(Req) ->
   case cowboy_req:has_body(Req) of
     true ->
       {ok, ReqBodyRaw, _} = cowboy_req:read_body(Req),
-      {ok, ReqBodyRaw};
+      ?JSON_DECODE(ReqBodyRaw);
     false ->
       {error, nobody}
   end.
 
+-spec get_req_body(cowboy_req:req(), map()) ->
+  {ok, binary()}
+  | {error, nobody}.
+get_req_body(Req, #{api := http_rest} = _State) ->
+  case cowboy_req:method(Req) of
+    M when M =:= <<"GET">>; M =:= <<"DELETE">> ->
+      maps:from_list(cowboy_req:parse_qs(Req));
+    M when M =:= <<"PUT">>; M =:= <<"POST">> ->
+      get_req_body(Req);
+    _ -> undefined
+  end.
+
 %% @private
-%% cowboy_req:method(Req).
-%% cowboy_req:path(Req).
-%% cowboy_req:qs(Req).
-%% cowboy_req:parse_qs(Req).
-%% cowboy_req:bindings(Req).
 -spec http_method_to_op_name(cowboy_req:req()) -> binary() | undefined.
 http_method_to_op_name(Req) ->
   case cowboy_req:method(Req) of
@@ -287,3 +301,10 @@ http_method_to_op_name(Req) ->
     <<"DELETE">> -> <<"delete">>;
     _ -> undefined
   end.
+
+-spec uri_to_method_name(cowboy_req:req()) -> binary() | undefined.
+uri_to_method_name(Req) ->
+  Bindings = cowboy_req:bindings(Req),
+  ObjType = maps:get(obj_type, Bindings),
+  ObjId = maps:get(obj_id, Bindings),
+  <<ObjType/binary, ".", ObjId/binary>>.
