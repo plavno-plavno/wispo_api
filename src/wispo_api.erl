@@ -89,7 +89,10 @@ confirm_phone(Phone, Code) ->
                 is_confirmed = true
             },
             true = ets:insert(?ETS_NAME, Rec),
-            {ok, wispo_api_auth_jwt:generate(#{<<"user_id">> => wispo_api_common_utils:uuid7()})};
+            Cfg = wispo_api_config:get(wispo_api, auth_jwt),
+            XmppHost = proplists:get_value(xmpp_host, Cfg),
+            Jid = <<(uuid:uuid_to_string(uuid:get_v3(Phone), binary_standard))/binary, "@", XmppHost/binary>>,
+            {ok, wispo_api_auth_jwt:generate(#{<<"jid">> => Jid})};
         _ ->
             {error, mismatch}
     end.
