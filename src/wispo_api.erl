@@ -92,7 +92,8 @@ confirm_phone(Phone, Code) ->
             Cfg = wispo_api_config:get(wispo_api, auth_jwt),
             XmppHost = proplists:get_value(xmpp_host, Cfg),
             Jid = <<(uuid:uuid_to_string(uuid:get_v3(Phone), binary_standard))/binary, "@", XmppHost/binary>>,
-            {ok, wispo_api_auth_jwt:generate(#{<<"jid">> => Jid})};
+            Jwt = wispo_api_auth_jwt:generate(#{<<"jid">> => Jid}),
+            {ok, maps:put(jid, Jid, Jwt)};
         _ ->
             {error, mismatch}
     end.
