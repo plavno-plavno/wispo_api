@@ -80,7 +80,7 @@ reg_phone(Phone, Opts) ->
     }}.
 
 %% @private
--spec confirm_phone(phone(), code()) -> ok | {error, expired}.
+-spec confirm_phone(phone(), code()) -> ok | {error, mismatch}.
 confirm_phone(Phone, Code) ->
     case ets:lookup(?ETS_NAME, Phone) of
         [#wispo_api_phone{phone = Phone, code = Code, is_confirmed = false}] ->
