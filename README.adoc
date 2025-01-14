@@ -118,6 +118,41 @@ server: Cowboy
 }'
 ----
 
+== Refresh JWT
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/jwt/refresh \
+-H 'Content-Type: application/json' \
+-d '
+{
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsI..."
+}'
+----
+
+.Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 601
+content-type: application/json
+date: Tue, 14 Jan 2025 04:55:33 GMT
+server: Cowboy
+
+{
+    "status": "ok",
+    "data": {
+      "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+      "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+      "access_jwt_expires_in": 1768366533,
+      "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+      "refresh_jwt_expires_in":1768366533
+    }
+}
+----
+
+
 == Sync Contacts List
 
 .Request:
