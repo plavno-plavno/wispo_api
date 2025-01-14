@@ -3,8 +3,8 @@
 -export([
   generate/1,
   generate/2,
-  validate/1,
-  verify/1
+  verify/1,
+  is_jwt_refresh/1
 ]).
 
 -include("wispo_api_common_utils.hrl").
@@ -57,4 +57,11 @@ verify(Jwt, Opts) ->
   {Bool, _, _} = jose_jwt:verify(Jwk, Jwt),
   Bool.
 
-
+-spec is_jwt_refresh(binary()) -> boolean().
+is_jwt_refresh(Jwt) ->
+  case jose_jwt:peek(Jwt) of
+    {jose_jwt, #{<<"is_refresh">> := true}} ->
+      true;
+    _ ->
+      false
+  end.

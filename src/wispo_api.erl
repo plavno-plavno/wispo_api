@@ -34,6 +34,21 @@ handle_call(<<"/phones/register">>, #{<<"phone">> := Phone}, _State) ->
     reply(reg_phone(Phone));
 handle_call(<<"/phones/confirm">>, #{<<"phone">> := Phone, <<"code">> := Code}, _State) ->
     reply(confirm_phone(Phone, Code));
+handle_call(<<"/jwt/refresh">>, #{<<"refresh_jwt">> := RefreshJwt}, _State) ->
+    case wispo_api_auth_jwt:is_jwt_refresh(RefreshJwt) of
+        true ->
+            case wispo_api_auth_jwt:verify(RefreshJwt) of
+                true ->
+                    {jose_jwt, #{<<"jid">> := Jid}} = jose_jwt:peek(RefreshJwt),
+                    Jwt = wispo_api_auth_jwt:generate(#{<<"jid">> => Jid}),
+                    Jwt2 = maps:put(jid, Jid, Jwt),
+                    reply({ok, Jwt2});
+                false ->
+                    reply({error, invalid_token})
+            end;
+        false ->
+            reply({error, invalid_token})
+    end;
 handle_call(<<"/health/check">>, _Data, _State) ->
     reply(ok);
 handle_call(_Path, _Data, _State) ->
@@ -48,9 +63,9 @@ reply(ok) ->
 reply({ok, Data}) ->
     #{status => ok, data => Data};
 reply({error, Reason}) ->
-    #{status => error, data => Reason};
+    #{status => error, data => #{message => Reason}};
 reply(_Any) ->
-    #{status => error, data => internal_error}.
+    #{status => error, data => #{message => internal_error}}.
 
 %% @private
 -spec reg_phone(binary()) ->
