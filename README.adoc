@@ -78,7 +78,7 @@ server: Cowboy
   "status": "ok",
   "data": {
     "phone": "+1234567890",
-    "code": [2,7,0,3]
+    "code": [2,7,0,3,9,1]
   }
 }'
 ----
@@ -93,7 +93,7 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
 -d '
 {
   "phone": "+1234567890",
-  "code": [1,2,3,4]
+  "code": [1,2,3,4,4,7]
 }'
 ----
 
@@ -109,14 +109,15 @@ server: Cowboy
 {
   "status": "ok",
   "data": {
-    "access_jwt": "...",
-    "access_jwt_expires_in": 1234567890,
-    "refresh_jwt": "...",
-    "refresh_jwt_expires_in": 1234567890,
-    "user_id": "..."
+    "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+    "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+    "access_jwt_expires_in": 1768366533,
+    "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+    "refresh_jwt_expires_in": 1768366533
   }
 }'
 ----
+
 
 == Refresh JWT
 
@@ -147,7 +148,7 @@ server: Cowboy
       "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
       "access_jwt_expires_in": 1768366533,
       "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
-      "refresh_jwt_expires_in":1768366533
+      "refresh_jwt_expires_in": 1768366533
     }
 }
 ----
