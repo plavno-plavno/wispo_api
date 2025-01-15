@@ -77,8 +77,7 @@ server: Cowboy
 {
   "status": "ok",
   "data": {
-    "phone": "+1234567890",
-    "code": [2,7,0,3,9,1]
+    "code_ttl": 240
   }
 }'
 ----
@@ -93,7 +92,7 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
 -d '
 {
   "phone": "+1234567890",
-  "code": [1,2,3,4,4,7]
+  "code": "567890"
 }'
 ----
 
@@ -161,6 +160,7 @@ server: Cowboy
 ----
 $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...' \
 -d '
 {
   "phone": "+1234567890",
@@ -180,13 +180,32 @@ server: Cowboy
 {
   "status": "ok",
   "data": {
-    "access_jwt": "...",
-    "refresh_jwt": "...",
+    "registered": [
+      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+      ...
+    ]
   }
 }'
 ----
 
+
 == Remove Synced Contacts List
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/contacts/remove-synced \
+-H 'Content-Type: application/json' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...'
+----
+
+.Response:
+[source,shell,linenum]
+----
+HTTP/1.1 204 No Content
+----
 
 == Files Upload/Download
 
