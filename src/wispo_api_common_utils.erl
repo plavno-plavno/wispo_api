@@ -84,20 +84,24 @@ reverse_bin(Binary) ->
   <<X:Size/integer-little>> = Binary,
   <<X:Size/integer-big>>.
 
-%% Phone = wispo_api_common_utils:reverse_bin(<<"+1234567890">>).
-%% Num = wispo_api_common_utils:cut_n_last_numbers(4, Phone).
--spec cut_n_last_numbers(pos_integer(), binary()) -> binary().
+%% {ok, <<"567890">>} = wispo_api_common_utils:cut_n_last_numbers(6, <<"+1234567890">>).
+-spec cut_n_last_numbers(pos_integer(), binary()) ->
+  {ok, binary()}
+  | {error, term()}.
 cut_n_last_numbers(N, Subject) ->
-  case re:run(Subject, <<"[0-9]">>, [global, report_errors, {capture, all, binary}]) of
+  Subject2 = reverse_bin(Subject),
+  case re:run(Subject2, <<"[0-9]">>, [global, report_errors, {capture, all, binary}]) of
     {match, L} ->
       L2 = [X || [X] <- L],
-      cut_n_numbers(N, L2, []);
+      {ok, cut_n_numbers(N, L2, [])};
     nomatch ->
-      nomatch
+      {error, nomatch}
   end.
 
 -spec cut_n_numbers(non_neg_integer(), list(), list()) -> binary().
 cut_n_numbers(0, _L, Acc) ->
+  list_to_binary(Acc);
+cut_n_numbers(_N, [], Acc) ->
   list_to_binary(Acc);
 cut_n_numbers(N, [H|T], Acc) ->
   cut_n_numbers(N-1, T, [H|Acc]).
