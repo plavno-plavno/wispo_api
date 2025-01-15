@@ -9,9 +9,10 @@
 -include("wispo_api_ets.hrl").
 
 start_link() ->
-	Ret = supervisor:start_link({local, ?MODULE}, ?MODULE, []),
-	?ETS_NAME = ets:new(?ETS_NAME, ?ETS_OPTS),
 	?LOG_INFO("CONFIG: ~p", [wispo_api_config:get()]),
+	Config = wispo_api_config:get(wispo_api, wispo_api_db_pg_worker),
+	Ret = supervisor:start_link({local, ?MODULE}, ?MODULE, Config),
+	?ETS_NAME = ets:new(?ETS_NAME, ?ETS_OPTS),
 	case wispo_api_net_http:start() of
 		{ok, _Pid} ->
 			Ret;
@@ -27,7 +28,7 @@ init(Args) ->
 		period => 5
 	},
 	ChildSpecs = [
-		%?WORKER(wispo_api_db_pg_worker, [Args])
+		?WORKER(wispo_api_db_pg_worker, [Args])
 	],
 	{ok, {SupFlags, ChildSpecs}}.
 
