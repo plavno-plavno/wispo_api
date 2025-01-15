@@ -44,11 +44,7 @@
 -define(HTTP_API_IP, {127,0,0,1}).
 -define(HTTP_API_HOST, '_').
 -define(HTTP_API_PORT, 8989).
--define(HTTP_API_URLS, [
-  {"/jsonrpc", wispo_api_net_http, #{api => jsonrpc}},
-  {"/rest/:vsn/:ns/:op", wispo_api_net_http, #{api => http_rest}},
-  {"/static/[...]", cowboy_static_handler, #{}}
-]).
+-define(HTTP_API_URLS, []).
 
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
