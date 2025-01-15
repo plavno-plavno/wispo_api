@@ -119,10 +119,13 @@ is_authorized(Req, State) ->
     true ->
       case cowboy_req:parse_header(<<"authorization">>, Req) of
         {bearer, AccessJwt} ->
-          Result = wispo_api_auth_jwt:verify(AccessJwt) and (not wispo_api_auth_jwt:is_jwt_refresh(AccessJwt)),
+          Result = wispo_api_auth_jwt:verify(AccessJwt)
+            and (not wispo_api_auth_jwt:is_jwt_refresh(AccessJwt))
+            and (not wispo_api_auth_jwt:is_jwt_expired(AccessJwt)),
           case Result of
             true ->
-              {true, Req, State};
+              {jose_jwt, #{<<"jid">> := Jid}} = jose_jwt:peek(AccessJwt),
+              {true, Req, maps:put(user_jid, Jid, State)};
             false ->
               {{false, <<"Bearer realm=\"wispo\", error=\"invalid_token\", error_description=\"The access token expired\"">>}, Req, State}
           end;
@@ -183,10 +186,10 @@ from_json(Req, State) ->
   State2 = init_state(Req, State),
   Path = path(Req),
   ReqBody = get_req_body(Req, State2),
-  RespBody = wispo_api:handle_call(Path, ReqBody, State2),
+  {RespCode, RespBody} = wispo_api:handle_call(Path, ReqBody, State2),
   Json = jsx:encode(RespBody),
   Headers = #{<<"content-type">> => <<"application/json">>},
-  Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+  Req2 = cowboy_req:reply(RespCode, Headers, Json, Req),
   {stop, Req2, State2}.
 
 -spec to_json(Req, State) -> {Result, Req, State} when
@@ -197,10 +200,10 @@ to_json(Req, State) ->
   State2 = init_state(Req, State),
   Path = path(Req),
   ReqBody = null,
-  RespBody = wispo_api:handle_call(Path, ReqBody, State2),
+  {RespCode, RespBody} = wispo_api:handle_call(Path, ReqBody, State2),
   Json = jsx:encode(RespBody),
   Headers = #{<<"content-type">> => <<"application/json">>},
-  Req2 = cowboy_req:reply(?HTTP_200_OK, Headers, Json, Req),
+  Req2 = cowboy_req:reply(RespCode, Headers, Json, Req),
   {stop, Req2, State2}.
 
 -spec init_state(Req, State) -> {ApiCall, Ctx} when

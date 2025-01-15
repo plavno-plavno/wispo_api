@@ -15,6 +15,7 @@
     is_confirmed_phone/1
 ]).
 
+-include("wispo_api_net_http.hrl").
 -include("wispo_api_ets.hrl").
 
 -type path() :: binary().
@@ -27,19 +28,37 @@
 -export_type([code/0]).
 
 -spec handle_call(path(), map(), map()) ->
-    {ok, map()}
-    | {error, map()}.
-handle_call(<<"/phones/register">>, #{<<"phone">> := Phone}, _State) ->
-    % TODO: #{<<"debug">> => true, <<"debug_key">> => <<"secret-id">>} (for CT)
-    reply(reg_phone(Phone));
-handle_call(<<"/phones/confirm">>, #{<<"phone">> := Phone, <<"code">> := Code}, _State) ->
-    reply(confirm_phone(Phone, Code));
-handle_call(<<"/contacts/sync">>, Data, _State) ->
-    ContactsOwner = undefined, % TODO: Use JID from JWT
-    reply(wispo_api_contacts:sync(ContactsOwner, Data));
-handle_call(<<"/contacts/remove-synced">>, _Data, _State) ->
-    ContactsOwner = undefined, % TODO: Use JID from JWT
-    reply(wispo_api_contacts:remove_synced(ContactsOwner));
+    pos_integer()
+    | {pos_integer(), map()}.
+handle_call(<<"/phones/register">>, Params, _State) ->
+    case maps:get(<<"phone">>, Params, null) of
+        null ->
+            to_reply({error, invalid_params});
+        Phone when is_binary(Phone) ->
+            to_reply(reg_phone(Phone))
+    end;
+handle_call(<<"/phones/confirm">>, Params, _State) ->
+    case {maps:get(<<"phone">>, Params, null), maps:get(<<"code">>, Params, null)} of
+        {Phone, Code} when is_binary(Phone), is_binary(Code) ->
+            to_reply(confirm_phone(Phone, Code));
+        _ ->
+            to_reply({error, invalid_params})
+    end;
+handle_call(<<"/contacts/sync">>, Params, State) ->
+    case maps:get(<<"contacts">>, Params, null) of
+        Contacts = [_|_] ->
+            ContactsOwnerJid = maps:get(user_jid, State),
+            to_reply(wispo_api_contacts:sync(ContactsOwnerJid, Contacts));
+        _ ->
+            to_reply({error, invalid_params})
+    end;
+handle_call(<<"/contacts/remove-synced">>, _Params, State) ->
+    case maps:get(user_jid, State, null) of
+        ContactsOwnerJid when is_binary(ContactsOwnerJid) ->
+            to_reply(wispo_api_contacts:remove_synced(ContactsOwnerJid));
+        _ ->
+            to_reply({error, unauthorized})
+    end;
 handle_call(<<"/jwt/refresh">>, #{<<"refresh_jwt">> := RefreshJwt}, _State) ->
     case wispo_api_auth_jwt:is_jwt_refresh(RefreshJwt) of
         true ->
@@ -48,30 +67,43 @@ handle_call(<<"/jwt/refresh">>, #{<<"refresh_jwt">> := RefreshJwt}, _State) ->
                     {jose_jwt, #{<<"jid">> := Jid}} = jose_jwt:peek(RefreshJwt),
                     Jwt = wispo_api_auth_jwt:generate(#{<<"jid">> => Jid}),
                     Jwt2 = maps:put(jid, Jid, Jwt),
-                    reply({ok, Jwt2});
+                    to_reply({ok, Jwt2});
                 false ->
-                    reply({error, invalid_token})
+                    to_reply({error, invalid_token})
             end;
         false ->
-            reply({error, invalid_token})
+            to_reply({error, invalid_token})
     end;
 handle_call(<<"/health/check">>, _Data, _State) ->
-    reply(ok);
+    to_reply({ok, #{status => ok}});
 handle_call(_Path, _Data, _State) ->
-    reply({error, unexpected_call}).
+    to_reply({error, unexpected_call}).
 
 %%% Internal functions
 
-%% @private
--spec reply(atom() | tuple()) -> map().
-reply(ok) ->
-    #{status => ok};
-reply({ok, Data}) ->
-    #{status => ok, data => Data};
-reply({error, Reason}) ->
-    #{status => error, data => #{message => Reason}};
-reply(_Any) ->
-    #{status => error, data => #{message => internal_error}}.
+-spec to_reply(atom() | tuple()) ->
+    pos_integer()
+    | {pos_integer(), map()}.
+to_reply(ok) ->
+    ?HTTP_204_NO_CONTENT;
+to_reply({ok, Data}) ->
+    {?HTTP_200_OK, Data};
+to_reply({error, invalid_token}) ->
+    {?HTTP_401_UNAUTHORIZED, #{error_message => invalid_token}};
+to_reply({error, unexpected_call}) ->
+    {?HTTP_404_NOT_FOUND, #{error_message => unexpected_call}};
+to_reply({error, invalid_params}) ->
+    {?HTTP_400_BAD_REQUEST, #{error_message => invalid_params}};
+to_reply({error, auth_code_mismatch}) ->
+    {?HTTP_401_UNAUTHORIZED, #{error_message => auth_code_mismatch}};
+to_reply({error, unauthorized}) ->
+    {?HTTP_401_UNAUTHORIZED, #{error_message => unauthorized}};
+to_reply({error, not_implemented}) ->
+    {?HTTP_501_NOT_IMPLEMENTED, #{error_message => not_implemented}};
+to_reply({error, Reason}) ->
+    {?HTTP_400_BAD_REQUEST, #{error_message => Reason}};
+to_reply(_Any) ->
+    {?HTTP_500_INTERNAL_SERVER_ERROR, #{error_message => internal_error}}.
 
 %% @private
 -spec reg_phone(binary()) ->
@@ -97,10 +129,10 @@ reg_phone(Phone, Opts) ->
         code_exp = CodeExp
     },
     true = ets:insert(?ETS_NAME, Rec),
-    {ok, #{code_ttl => CodeTtl}}.
+    {ok, #{code_ttl => CodeTtl, code_ttl_unit => seconds}}.
 
 %% @private
--spec confirm_phone(phone(), code()) -> ok | {error, mismatch}.
+-spec confirm_phone(phone(), code()) -> ok | {error, auth_code_mismatch}.
 confirm_phone(Phone, Code) ->
     case ets:lookup(?ETS_NAME, Phone) of
         [#wispo_api_phone{phone = Phone, code = Code, is_confirmed = false}] ->
@@ -115,7 +147,7 @@ confirm_phone(Phone, Code) ->
             Jwt = wispo_api_auth_jwt:generate(#{<<"jid">> => Jid}),
             {ok, maps:put(jid, Jid, Jwt)};
         _ ->
-            {error, mismatch}
+            {error, auth_code_mismatch}
     end.
 
 %% @private

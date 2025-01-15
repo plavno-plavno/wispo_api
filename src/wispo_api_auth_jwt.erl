@@ -4,7 +4,8 @@
   generate/1,
   generate/2,
   verify/1,
-  is_jwt_refresh/1
+  is_jwt_refresh/1,
+  is_jwt_expired/1
 ]).
 
 -include("wispo_api_common_utils.hrl").
@@ -65,4 +66,13 @@ is_jwt_refresh(Jwt) ->
       true;
     _ ->
       false
+  end.
+
+-spec is_jwt_expired(binary()) -> boolean().
+is_jwt_expired(Jwt) ->
+  case jose_jwt:peek(Jwt) of
+    {jose_jwt, #{<<"exp">> := Exp}} ->
+      Exp =< erlang:system_time(seconds);
+    _ ->
+      true
   end.
