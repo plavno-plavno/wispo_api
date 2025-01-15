@@ -77,8 +77,7 @@ server: Cowboy
 {
   "status": "ok",
   "data": {
-    "phone": "+1234567890",
-    "code": [2,7,0,3]
+    "code_ttl": 240
   }
 }'
 ----
@@ -93,9 +92,11 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
 -d '
 {
   "phone": "+1234567890",
-  "code": [1,2,3,4]
+  "code": "567890"
 }'
 ----
+
+NOTE: Currently, confirmation code is last six numbers from phone number
 
 .Response:
 [source,shell,linenum]
@@ -107,16 +108,48 @@ date: Mon, 06 Jan 2025 02:20:12 GMT
 server: Cowboy
 
 {
-  "status": "ok",
-  "data": {
-    "access_jwt": "...",
-    "access_jwt_expires_in": 1234567890,
-    "refresh_jwt": "...",
-    "refresh_jwt_expires_in": 1234567890,
-    "user_id": "..."
-  }
+  "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+  "token_type": "Bearer",
+  "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "access_jwt_expires_in": 1768366533,
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+  "refresh_jwt_expires_in": 1768366533
 }'
 ----
+
+
+== Refresh JWT
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/jwt/refresh \
+-H 'Content-Type: application/json' \
+-d '
+{
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsI..."
+}'
+----
+
+.Response:
+[source,shell,linenum]
+----
+HTTP/1.1 200 OK
+content-length: 601
+content-type: application/json
+date: Tue, 14 Jan 2025 04:55:33 GMT
+server: Cowboy
+
+{
+  "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+  "token_type": "Bearer",
+  "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "access_jwt_expires_in": 1768366533,
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+  "refresh_jwt_expires_in": 1768366533
+}
+----
+
 
 == Sync Contacts List
 
@@ -125,9 +158,9 @@ server: Cowboy
 ----
 $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 -H 'Content-Type: application/json' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...' \
 -d '
 {
-  "phone": "+1234567890",
   "contacts": ["+111222333", "+777888999", "+999333111"]
 }'
 ----
@@ -136,21 +169,46 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 [source,shell,linenum]
 ----
 HTTP/1.1 200 OK
-content-length: 69
+content-length: 136
 content-type: application/json
-date: Mon, 06 Jan 2025 02:20:12 GMT
+date: Wed, 15 Jan 2025 21:18:12 GMT
 server: Cowboy
 
-{
-  "status": "ok",
-  "data": {
-    "access_jwt": "...",
-    "refresh_jwt": "...",
+[
+  {
+    "phone": "+111222333",
+    "jid": "foo@localhost"
+  },
+  {
+    "phone": "+777888999",
+    "jid": "bar@localhost"
+  },
+  {
+    "phone": "+999333111",
+    "jid": "baz@localhost"
   }
-}'
+]'
 ----
 
+
 == Remove Synced Contacts List
+
+WARNING: Currently not implemented
+
+.Request:
+[source,shell,linenum]
+----
+$ curl -X POST http://127.0.0.1:8989/rest/1/contacts/remove-synced \
+-H 'Content-Type: application/json' \
+-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...'
+----
+
+.Response:
+[source,shell,linenum]
+----
+HTTP/1.1 204 No Content
+----
+
 
 == Files Upload/Download
 
@@ -185,3 +243,7 @@ Warning: <FILE>" to save to a file.
 ----
 
 NOTE: We can retrieve previously uploaded file using their file name.
+
+== Known Problems
+
+WARNING: badarg exception when token have invalid format (Authorization: Bearer xxx)

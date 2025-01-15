@@ -3,11 +3,15 @@
 -export([
   generate/1,
   generate/2,
-  validate/1,
-  verify/1
+  verify/1,
+  is_jwt_refresh/1,
+  is_jwt_expired/1
 ]).
 
--define(DEFAULT_JWT_TTL, 60 * 2).
+-include("wispo_api_common_utils.hrl").
+
+-define(DEFAULT_JWT_TTL, 60 * 5).
+-define(DEFAULT_JWT_REFRESH_TTL, ?SECONDS_PER_DAY * 365).
 
 -spec generate(map()) -> map().
 generate(Payload) ->
@@ -19,29 +23,56 @@ generate(Payload, Opts) ->
   Alg = proplists:get_value(alg, Opts),
   Key = proplists:get_value(key, Opts),
   Iss = proplists:get_value(iss, Opts),
-  Ttl = proplists:get_value(jwt_access_ttl, Opts, ?DEFAULT_JWT_TTL),
-  Exp = erlang:system_time(seconds) + Ttl,
+  TtlA = proplists:get_value(jwt_access_ttl, Opts, ?DEFAULT_JWT_TTL),
+  TtlR = proplists:get_value(jwt_refresh_ttl, Opts, ?DEFAULT_JWT_REFRESH_TTL),
+  ExpA = erlang:system_time(seconds) + TtlA,
+  ExpR = erlang:system_time(seconds) + TtlR,
   Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
   Jws = #{<<"alg">> => Alg},
   Jwt = #{
     <<"iss">> => Iss,
-    <<"exp">> => Exp
+    <<"exp">> => ExpA
   },
   Signed = jose_jwt:sign(Jwk, Jws, maps:merge(Jwt, Payload)),
   {_, AccessJwt} = jose_jws:compact(Signed),
+  RefreshJwt = maps:put(<<"exp">>, ExpR, Jwt),
+  RefreshJwt2 = maps:put(<<"is_refresh">>, true, RefreshJwt),
+  SignedRefresh = jose_jwt:sign(Jwk, Jws, maps:merge(RefreshJwt2, Payload)),
+  {_, RefreshJwt3} = jose_jws:compact(SignedRefresh),
   #{
+    token_type => <<"Bearer">>,
     access_jwt => AccessJwt,
-    refresh_jwt => null,
-    expires_in => Exp
+    access_jwt_expires_in => ExpA,
+    refresh_jwt => RefreshJwt3,
+    refresh_jwt_expires_in => ExpR
   }.
 
--spec validate(binary()) -> ok.
-validate(_) ->
-  {error, not_implemented}.
+-spec verify(binary()) -> boolean().
+verify(Jwt) ->
+  Config = wispo_api_config:get(wispo_api, auth_jwt),
+  verify(Jwt, Config).
 
--spec verify(binary()) -> ok.
-verify(_) ->
-  {error, not_implemented}.
+-spec verify(binary(), proplists:proplist()) -> boolean().
+verify(Jwt, Opts) ->
+  Key = proplists:get_value(key, Opts),
+  Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
+  {Bool, _, _} = jose_jwt:verify(Jwk, Jwt), % TODO: badarg exception when token have invalid format
+  Bool.
 
-%% TODO: pubkey_rotate
+-spec is_jwt_refresh(binary()) -> boolean().
+is_jwt_refresh(Jwt) ->
+  case jose_jwt:peek(Jwt) of
+    {jose_jwt, #{<<"is_refresh">> := true}} ->
+      true;
+    _ ->
+      false
+  end.
 
+-spec is_jwt_expired(binary()) -> boolean().
+is_jwt_expired(Jwt) ->
+  case jose_jwt:peek(Jwt) of
+    {jose_jwt, #{<<"exp">> := Exp}} ->
+      Exp =< erlang:system_time(seconds);
+    _ ->
+      true
+  end.

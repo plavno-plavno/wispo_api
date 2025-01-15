@@ -18,6 +18,7 @@ export WISPO_CONFIG=$(CURDIR)/config/wispo.config
 
 CT_OPTS = -erl_args -config $(CURDIR)/config/sys.config
 
+LOCAL_DEPS += inets
 # LOCAL_DEPS += wx
 # LOCAL_DEPS += observer et debugger
 
