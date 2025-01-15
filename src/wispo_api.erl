@@ -34,6 +34,12 @@ handle_call(<<"/phones/register">>, #{<<"phone">> := Phone}, _State) ->
     reply(reg_phone(Phone));
 handle_call(<<"/phones/confirm">>, #{<<"phone">> := Phone, <<"code">> := Code}, _State) ->
     reply(confirm_phone(Phone, Code));
+handle_call(<<"/contacts/sync">>, Data, _State) ->
+    ContactsOwner = undefined, % TODO: Use JID from JWT
+    reply(wispo_api_contacts:sync(ContactsOwner, Data));
+handle_call(<<"/contacts/remove-synced">>, _Data, _State) ->
+    ContactsOwner = undefined, % TODO: Use JID from JWT
+    reply(wispo_api_contacts:remove_synced(ContactsOwner));
 handle_call(<<"/jwt/refresh">>, #{<<"refresh_jwt">> := RefreshJwt}, _State) ->
     case wispo_api_auth_jwt:is_jwt_refresh(RefreshJwt) of
         true ->
@@ -80,19 +86,18 @@ reg_phone(Phone) ->
     {ok, map()}
     | {error, term()}.
 reg_phone(Phone, Opts) ->
+    CodeLen = proplists:get_value(code_len, Opts, 6),
     CodeTtl = proplists:get_value(code_ttl, Opts, 60 * 2),
     CodeExp = erlang:system_time(seconds) + CodeTtl,
-    Code = wispo_api_common_utils:rand_code(),
+    %Code = wispo_api_common_utils:rand_code(CodeLen),
+    {ok, Code} = wispo_api_common_utils:cut_n_last_numbers(CodeLen, Phone),
     Rec = #wispo_api_phone{
         phone = Phone,
         code = Code,
         code_exp = CodeExp
     },
     true = ets:insert(?ETS_NAME, Rec),
-    {ok, #{
-        code => Code,
-        code_ttl => CodeTtl
-    }}.
+    {ok, #{code_ttl => CodeTtl}}.
 
 %% @private
 -spec confirm_phone(phone(), code()) -> ok | {error, mismatch}.
