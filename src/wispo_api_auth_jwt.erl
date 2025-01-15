@@ -45,12 +45,12 @@ generate(Payload, Opts) ->
     refresh_jwt_expires_in => ExpR
   }.
 
--spec verify(binary()) -> ok.
+-spec verify(binary()) -> boolean().
 verify(Jwt) ->
   Config = wispo_api_config:get(wispo_api, auth_jwt),
   verify(Jwt, Config).
 
--spec verify(binary(), proplists:proplist()) -> ok.
+-spec verify(binary(), proplists:proplist()) -> boolean().
 verify(Jwt, Opts) ->
   Key = proplists:get_value(key, Opts),
   Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
