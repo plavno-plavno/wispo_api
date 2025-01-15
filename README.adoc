@@ -96,6 +96,8 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/phones/confirm \
 }'
 ----
 
+NOTE: Currently, confirmation code is last six numbers from phone number
+
 .Response:
 [source,shell,linenum]
 ----
