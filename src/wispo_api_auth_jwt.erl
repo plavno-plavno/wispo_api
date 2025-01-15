@@ -56,7 +56,7 @@ verify(Jwt) ->
 verify(Jwt, Opts) ->
   Key = proplists:get_value(key, Opts),
   Jwk = #{<<"kty">> => <<"oct">>, <<"k">> => Key},
-  {Bool, _, _} = jose_jwt:verify(Jwk, Jwt),
+  {Bool, _, _} = jose_jwt:verify(Jwk, Jwt), % TODO: badarg exception when token have invalid format
   Bool.
 
 -spec is_jwt_refresh(binary()) -> boolean().

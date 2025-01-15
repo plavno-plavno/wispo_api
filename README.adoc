@@ -108,14 +108,12 @@ date: Mon, 06 Jan 2025 02:20:12 GMT
 server: Cowboy
 
 {
-  "status": "ok",
-  "data": {
-    "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
-    "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
-    "access_jwt_expires_in": 1768366533,
-    "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
-    "refresh_jwt_expires_in": 1768366533
-  }
+  "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+  "token_type": "Bearer",
+  "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "access_jwt_expires_in": 1768366533,
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+  "refresh_jwt_expires_in": 1768366533
 }'
 ----
 
@@ -143,14 +141,12 @@ date: Tue, 14 Jan 2025 04:55:33 GMT
 server: Cowboy
 
 {
-    "status": "ok",
-    "data": {
-      "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
-      "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
-      "access_jwt_expires_in": 1768366533,
-      "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
-      "refresh_jwt_expires_in": 1768366533
-    }
+  "jid": "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
+  "token_type": "Bearer",
+  "access_jwt": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "access_jwt_expires_in": 1768366533,
+  "refresh_jwt": "eyJhbGciOiJIUzI1NiIsInR...",
+  "refresh_jwt_expires_in": 1768366533
 }
 ----
 
@@ -165,7 +161,6 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...' \
 -d '
 {
-  "phone": "+1234567890",
   "contacts": ["+111222333", "+777888999", "+999333111"]
 }'
 ----
@@ -174,26 +169,31 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/sync \
 [source,shell,linenum]
 ----
 HTTP/1.1 200 OK
-content-length: 69
+content-length: 136
 content-type: application/json
-date: Mon, 06 Jan 2025 02:20:12 GMT
+date: Wed, 15 Jan 2025 21:18:12 GMT
 server: Cowboy
 
-{
-  "status": "ok",
-  "data": {
-    "registered": [
-      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
-      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
-      "0923e1f4-fb61-3739-99c5-918c57656d5e@localhost",
-      ...
-    ]
+[
+  {
+    "phone": "+111222333",
+    "jid": "foo@localhost"
+  },
+  {
+    "phone": "+777888999",
+    "jid": "bar@localhost"
+  },
+  {
+    "phone": "+999333111",
+    "jid": "baz@localhost"
   }
-}'
+]'
 ----
 
 
 == Remove Synced Contacts List
+
+WARNING: Currently not implemented
 
 .Request:
 [source,shell,linenum]
@@ -208,6 +208,7 @@ $ curl -X POST http://127.0.0.1:8989/rest/1/contacts/remove-synced \
 ----
 HTTP/1.1 204 No Content
 ----
+
 
 == Files Upload/Download
 
@@ -242,3 +243,7 @@ Warning: <FILE>" to save to a file.
 ----
 
 NOTE: We can retrieve previously uploaded file using their file name.
+
+== Known Problems
+
+WARNING: badarg exception when token have invalid format (Authorization: Bearer xxx)

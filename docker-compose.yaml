@@ -12,6 +12,23 @@ services:
     networks:
       - wispo-api-network
     entrypoint: ["/bin/sh", "-c", "/opt/wispo_api/_rel/wispo_api_release/bin/wispo_api_release foreground"]
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=wispo_api
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=wispo_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./priv/db/pg.sql:/docker-entrypoint-initdb.d/pg.sql
+    networks:
+      - wispo-api-network
+volumes:
+  pg_data:
 networks:
   wispo-api-network:
     driver: bridge
