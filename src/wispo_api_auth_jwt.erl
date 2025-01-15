@@ -39,6 +39,7 @@ generate(Payload, Opts) ->
   SignedRefresh = jose_jwt:sign(Jwk, Jws, maps:merge(RefreshJwt2, Payload)),
   {_, RefreshJwt3} = jose_jws:compact(SignedRefresh),
   #{
+    token_type => <<"Bearer">>,
     access_jwt => AccessJwt,
     access_jwt_expires_in => ExpA,
     refresh_jwt => RefreshJwt3,
