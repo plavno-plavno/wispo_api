@@ -94,7 +94,7 @@ terminate(_Reason, _Req, _State) ->
   Req :: cowboy_req:req(),
   State :: term().
 allowed_methods(Req, State) ->
-  Methods = [<<"GET">>, <<"POST">>, <<"PUT">>, <<"DELETE">>],
+  Methods = [<<"GET">>, <<"POST">>, <<"PUT">>, <<"PATCH">>, <<"DELETE">>],
   {Methods, Req, State}.
 
 -spec allow_missing_post(Req, State)
