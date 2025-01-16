@@ -10,20 +10,23 @@ COPY . wispo_api
 
 # And build the release
 WORKDIR wispo_api
-RUN apk add --no-cache g++ && \
-    apk add --no-cache make && \
-    apk add --no-cache git && \
+RUN apk add openssl && \
+    apk add ncurses-libs && \
+    apk add libstdc++ && \
+    apk add g++ && \
+    apk add make && \
+    apk add git && \
     make && make rel
 
 # Build stage 1
 FROM alpine
 
 # Install some libs
-RUN apk add --no-cache openssl && \
-    apk add --no-cache ncurses-libs && \
-    apk add --no-cache libstdc++ && \
-    apk add --no-cache g++ && \
-    apk add --no-cache make
+RUN apk add openssl && \
+    apk add ncurses-libs && \
+    apk add libstdc++ && \
+    apk add g++ && \
+    apk add make
 
 # Install the released application
 COPY --from=0 /buildroot/wispo_api /opt/wispo_api
