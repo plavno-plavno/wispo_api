@@ -1,0 +1,28 @@
+name: pull-request
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  launch-docker:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # build and launch docker container
+      - run: docker compose up --build -d
+      - run: sleep 5
+
+      # run tests
+      - run: chmod -R 777 ./api-requests.sh
+      - run: ./api-requests.sh
+
+      # down docker container
+      - run: docker compose down
