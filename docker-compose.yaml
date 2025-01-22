@@ -14,7 +14,7 @@ services:
     entrypoint: ["/bin/sh", "-c", "/opt/wispo_api/_rel/wispo_api_release/bin/wispo_api_release foreground"]
   postgres:
     image: postgres:17.2-alpine3.21
-    container_name: postgres
+    container_name: postgres_wispo_api
     restart: unless-stopped
     environment:
       - POSTGRES_USER=wispo_api
